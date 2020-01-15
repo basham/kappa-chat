@@ -1,6 +1,6 @@
 import kappa from 'kappa-core'
-import list from 'kappa-view-list'
-import level from 'level-mem'
+//import list from 'kappa-view-list'
+//import level from 'level-mem'
 import ram from 'random-access-memory'
 import { adoptStyles, define, html, renderComponent } from '../util/dom.js'
 import { combineLatestObject, debug, fromEventSelector, useSubscribe } from '../util/rx.js'
@@ -15,14 +15,14 @@ document.addEventListener('touchstart', () => {}, true)
 //
 // Kapp
 //
-const idx = level()
-const chatView = list(idx, (msg, next) => {
-  if (msg.value.type !== 'chat-message') return next()
-  next(null, [ msg.value.timestamp ])
-})
+//const idx = level()
+//const chatView = list(idx, (msg, next) => {
+//  if (msg.value.type !== 'chat-message') return next()
+//  next(null, [ msg.value.timestamp ])
+//})
 
-const core = kappa(ram, { valueEncoding: 'json' })
-core.use('chat', chatView)
+//const core = kappa(ram, { valueEncoding: 'json' })
+//core.use('chat', chatView)
 
 //
 // Component
