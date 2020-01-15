@@ -1,8 +1,9 @@
-import { appendFileSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
+import { appendFileSync, createWriteStream, readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { createRequire } from 'module'
 import { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'
 import webpack from 'webpack'
+import browserify from 'browserify'
 
 const require = createRequire(import.meta.url)
 const pkg = require('../package.json')
@@ -19,10 +20,41 @@ Object.entries(entry)
     const filePath = resolve(__root, __tmp, fileName)
     const fileContents = `window['${moduleName}'] = require('${moduleName}')`
     writeFileSync(filePath, fileContents)
+
+    const outPath = resolve(__root, __web_modules, fileName)
+    const outFile = createWriteStream(outPath)
+    browserify()
+      .add(filePath)
+      .bundle()
+      .pipe(outFile)
+    outFile.on('finish', () => {
+      unlinkSync(filePath)
+
+      const file = readFileSync(outPath, { encoding: 'utf8' })
+      const newFile = file.replace('process.config.variables.arm_version', "''")
+      writeFileSync(outPath, newFile)
+      const contents = `export default window['${moduleName}'];`
+      appendFileSync(outPath, contents)
+
+      const mapPath = resolve(__root, __web_modules, 'import-map.json')
+      const importMap = JSON.parse(readFileSync(mapPath))
+      const mapContents = {
+        ...importMap,
+        imports: {
+          ...importMap.imports,
+          [moduleName]: fileName
+        }
+      }
+      writeFileSync(mapPath, JSON.stringify(mapContents, null, 2))
+
+      console.log('Installed:', moduleName)
+    })
   })
 
+/*
 const compiler = webpack({
-  mode: 'production',
+  //mode: 'production',
+  mode: 'development',
   context: resolve(__root, __tmp),
   entry,
   output: {
@@ -61,3 +93,4 @@ compiler.run((err, stats) => {
       console.log('Installed:', moduleName)
     })
 })
+*/
