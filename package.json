@@ -1,0 +1,71 @@
+{
+  "name": "kappa-chat",
+  "version": "1.0.0",
+  "description": "Chat app with Dat and Kappa",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=12"
+  },
+  "scripts": {
+    "build": "npm run pika && npm run cjs && npm run workbox",
+    "cjs": "node --experimental-modules scripts/cjs.js",
+    "pika": "pika-web --clean --optimize --no-source-map --dest ./public/web_modules/",
+    "postbuild": "cp ./node_modules/es-module-shims/dist/es-module-shims.min.js ./public/web_modules/es-module-shims.min.js",
+    "postinstall": "npm run build",
+    "start": "npm run server & npm run watch",
+    "server": "es-dev-server --open --watch --app-index ./index.html --root-dir ./public/",
+    "watch": "nodemon --watch ./public --ext js,css,html,svg --ignore service-worker.js --exec \"npm run workbox\"",
+    "workbox": "node --experimental-modules ./scripts/workbox.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/basham/kappa-chat.git"
+  },
+  "author": "Chris Basham <chris@bash.am>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/basham/kappa-chat/issues"
+  },
+  "homepage": "https://github.com/basham/kappa-chat#readme",
+  "dependencies": {
+    "construct-style-sheets-polyfill": "2.3.3",
+    "cuid": "2.1.8",
+    "es-module-shims": "0.4.6",
+    "fs-extra": "8.1.0",
+    "kappa-core": "6.0.0",
+    "kappa-view-list": "1.2.0",
+    "level": "6.0.0",
+    "lighterhtml": "2.0.9",
+    "random-access-memory": "3.1.1",
+    "rxjs": "6.5.4",
+    "subleveldown": "4.1.4",
+    "when-elements": "0.2.1"
+  },
+  "devDependencies": {
+    "@pika/web": "0.6.1",
+    "es-dev-server": "1.23.1",
+    "nodemon": "2.0.2",
+    "now": "16.7.3",
+    "webpack": "4.39.2",
+    "webpack-cli": "3.3.7",
+    "workbox-build": "4.3.1"
+  },
+  "@pika/web": {
+    "webDependencies": [
+      "construct-style-sheets-polyfill",
+      "cuid",
+      "lighterhtml",
+      "rxjs",
+      "rxjs/operators",
+      "when-elements"
+    ]
+  },
+  "cjsDependencies": [
+    "kappa-core",
+    "kappa-view-list",
+    "level",
+    "random-access-memory",
+    "subleveldown"
+  ]
+}

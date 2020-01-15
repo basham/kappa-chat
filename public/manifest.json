@@ -1,0 +1,26 @@
+{
+  "name": "Chatter",
+  "short_name": "Chatter",
+  "description": "Decentralized chat",
+  "lang": "en-US",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#303030",
+  "theme_color": "#1b1b1b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "./icons/icon-528.png",
+      "type": "image/png",
+      "sizes": "528x528"
+    },
+    {
+      "src": "./icons/icon.svg"
+    }
+  ]
+}

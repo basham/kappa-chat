@@ -1,0 +1,6 @@
+node_modules/
+public/web_modules/
+tmp/
+package-lock.json
+service-worker.js
+.DS_STORE
