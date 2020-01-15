@@ -1,96 +1,38 @@
-import { appendFileSync, createWriteStream, readFileSync, unlinkSync, writeFileSync } from 'fs'
-import { createRequire } from 'module'
-import { dirname, resolve } from 'path'
-import { fileURLToPath } from 'url'
-import webpack from 'webpack'
-import browserify from 'browserify'
+import rollup from 'rollup'
+import builtins from 'rollup-plugin-node-builtins'
+import commonjs from '@rollup/plugin-commonjs'
+import globals from 'rollup-plugin-node-globals'
+import json from '@rollup/plugin-json'
+import resolve from '@rollup/plugin-node-resolve'
 
-const require = createRequire(import.meta.url)
-const pkg = require('../package.json')
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const __root = resolve(__dirname, '../')
-const __tmp = './tmp'
-const __web_modules = './public/web_modules'
-
-const entry = pkg.cjsDependencies
-  .reduce((entries, entry) => ({ ...entries, [entry]: `./${entry}.js` }), {})
-
-Object.entries(entry)
-  .forEach(([ moduleName, fileName ]) => {
-    const filePath = resolve(__root, __tmp, fileName)
-    const fileContents = `window['${moduleName}'] = require('${moduleName}')`
-    writeFileSync(filePath, fileContents)
-
-    const outPath = resolve(__root, __web_modules, fileName)
-    const outFile = createWriteStream(outPath)
-    browserify()
-      .add(filePath)
-      .bundle()
-      .pipe(outFile)
-    outFile.on('finish', () => {
-      unlinkSync(filePath)
-
-      const file = readFileSync(outPath, { encoding: 'utf8' })
-      const newFile = file.replace('process.config.variables.arm_version', "''")
-      writeFileSync(outPath, newFile)
-      const contents = `export default window['${moduleName}'];`
-      appendFileSync(outPath, contents)
-
-      const mapPath = resolve(__root, __web_modules, 'import-map.json')
-      const importMap = JSON.parse(readFileSync(mapPath))
-      const mapContents = {
-        ...importMap,
-        imports: {
-          ...importMap.imports,
-          [moduleName]: fileName
-        }
-      }
-      writeFileSync(mapPath, JSON.stringify(mapContents, null, 2))
-
-      console.log('Installed:', moduleName)
+const inputOptions = {
+  //external:,
+  input: './scripts/kappa-core.js',
+  plugins: [
+    json(),
+    globals(),
+    builtins(),
+    resolve({
+      mainFields: [ 'browser', 'module', 'main' ]
+    }),
+    commonjs({
+      include: /node_modules/
     })
-  })
+  ]
+}
+const outputOptions = {
+  //dir,
+  file: './scripts/kappa-core.out.js',
+  format: 'esm'
+  //globals,
+  //name,
+  //plugins
+}
 
-/*
-const compiler = webpack({
-  //mode: 'production',
-  mode: 'development',
-  context: resolve(__root, __tmp),
-  entry,
-  output: {
-    filename: '[name].js',
-    path: resolve(__root, __web_modules)
-  },
-  node: {
-    fs: 'empty'
-  }
-})
+async function build () {
+  const bundle = await rollup.rollup(inputOptions)
+  //const { output } = await bundle.generate(outputOptions)
+  await bundle.write(outputOptions)
+}
 
-compiler.run((err, stats) => {
-  if (err || stats.hasErrors()) {
-    console.log('error', err, stats.toString())
-    return
-  }
-  Object.entries(entry)
-    .forEach(([ moduleName, fileName ]) => {
-      unlinkSync(resolve(__root, __tmp, fileName))
-
-      const filePath = resolve(__root, __web_modules, fileName)
-      const contents = `export default window['${moduleName}'];`
-      appendFileSync(filePath, contents)
-
-      const mapPath = resolve(__root, __web_modules, 'import-map.json')
-      const importMap = JSON.parse(readFileSync(mapPath))
-      const mapContents = {
-        ...importMap,
-        imports: {
-          ...importMap.imports,
-          [moduleName]: fileName
-        }
-      }
-      writeFileSync(mapPath, JSON.stringify(mapContents, null, 2))
-
-      console.log('Installed:', moduleName)
-    })
-})
-*/
+build()
